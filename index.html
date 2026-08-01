@@ -537,8 +537,10 @@ body::before {
    项目数据 —— 新增项目在这里加一行即可
    字段说明：
    - type: 'ready' 可用 | 'todo' 待办
-   - href: 可跳转链接（http/https/file 均可）
-   - path: 本地路径（仅 todo 显示；remote 项目留空）
+   - useWeb: 线上「使用」地址（部署后的工具本体）
+   - useLocal: 本地「使用」地址（file:// 直接运行）
+   - repo: GitHub 仓库链接（次要入口）
+   - path: 本地路径（todo 显示；remote 项目留空）
    - remote: true 表示远程仓库（无本地路径）
    ============================================================ */
 const PROJECTS = [
@@ -547,9 +549,9 @@ const PROJECTS = [
     type: 'ready', icon: '📚', name: 'Algora 算法可视化',
     tags: ['学习工具', '数据结构', '动画'],
     desc: '零依赖的中文数据结构与算法可视化学习站：58 个模块覆盖线性表、树、图、查找、排序，动画帧与真实代码联动，支持 C/C++/Java/Python 三语言。',
-    href: 'https://github.com/BeringZ/algora-visualizer',
-    path: '/Users/bering/Documents/PM/algora-visualizer/index.html',
-    remote: false
+    useWeb: 'https://beringz.github.io/algora-visualizer/',
+    useLocal: 'file:///Users/bering/Documents/PM/algora-visualizer/index.html',
+    repo: 'https://github.com/BeringZ/algora-visualizer'
   },
 
   /* ---------- 待办项目 ---------- */
@@ -662,7 +664,10 @@ function render() {
   $('#statReady').textContent = ready.length;
   $('#statTodo').textContent = todos.length;
 
-  $('#readyGrid').innerHTML = ready.map((p, i) => `
+  $('#readyGrid').innerHTML = ready.map((p, i) => {
+    // 「使用」按钮：本地模式优先打开本地文件，网页模式打开线上部署版
+    const useHref = (isLocal && p.useLocal) ? p.useLocal : (p.useWeb || p.repo);
+    return `
     <article class="tool-card ready" style="animation-delay:${i*70}ms">
       <div class="tool-top">
         <div class="tool-icon">${p.icon}</div>
@@ -673,10 +678,11 @@ function render() {
       </div>
       <p class="tool-desc">${esc(p.desc)}</p>
       <div class="tool-actions">
-        <a class="btn btn-primary" href="${p.href}" target="_blank" rel="noopener">打开 ↗</a>
-        ${p.path ? `<button class="btn btn-ghost" data-copy="${esc(p.path)}">复制本地路径</button>` : ''}
+        <a class="btn btn-primary" href="${useHref}" target="_blank" rel="noopener">使用 ↗</a>
+        ${p.repo ? `<a class="btn btn-ghost" href="${p.repo}" target="_blank" rel="noopener">GitHub 仓库</a>` : ''}
       </div>
-    </article>`).join('');
+    </article>`;
+  }).join('');
 
   $('#todoGrid').innerHTML = todos.map((p, i) => {
     const canOpen = isLocal && !p.remote;
