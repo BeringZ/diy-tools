@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bering DIY Tools · 白林工具集</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23003049'/%3E%3Cpath d='M8 22 14 10l3 6 2-4 5 10z' fill='%2300C9FF'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ================= 基础 ================= */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* 海洋主题渐变 —— 门户主视觉 */
+  --c1: #00C9FF;
+  --c2: #92FE9D;
+  --c3: #00B4D8;
+  --c4: #0077B6;
+  --c5: #003049;
+  --bg: #04202D;            /* 深海军蓝底（由 #003049 深化） */
+  --bg-2: #062B3A;
+  --card: rgba(255,255,255,.045);
+  --card-hover: rgba(255,255,255,.08);
+  --text: #F5FDFF;
+  --text-dim: rgba(245,253,255,.62);
+  --text-faint: rgba(245,253,255,.36);
+  --line: rgba(255,255,255,.10);
+  --line-strong: rgba(255,255,255,.18);
+  --accent: #00C9FF;
+  --ok: #92FE9D;
+  --warn: #FFB703;
+  --grad: linear-gradient(120deg, var(--c1), var(--c2));
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --ease: cubic-bezier(.22,.9,.32,1);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background:
+    radial-gradient(1000px 600px at 85% -10%, rgba(0,201,255,.13), transparent 60%),
+    radial-gradient(900px 540px at -10% 20%, rgba(146,254,157,.07), transparent 58%),
+    radial-gradient(800px 500px at 50% 115%, rgba(0,119,182,.14), transparent 60%),
+    var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+::selection { background: rgba(0,201,255,.3); }
+
+/* 细网格纹理 */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(245,253,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(245,253,255,.025) 1px, transparent 1px);
+  background-size: 52px 52px;
+  mask-image: radial-gradient(ellipse 85% 65% at 50% 0%, black 30%, transparent 80%);
+}
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+
+/* ================= 顶栏 ================= */
+.site-header {
+  position: sticky; top: 0; z-index: 40;
+  backdrop-filter: blur(18px) saturate(1.5);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  background: rgba(4,32,45,.72);
+  border-bottom: 1px solid var(--line);
+}
+.header-inner {
+  max-width: 1200px; margin: 0 auto; padding: 13px 26px;
+  display: flex; align-items: center; gap: 14px;
+}
+.brand { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.brand-mark {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--c1), var(--c2), var(--c3), var(--c4));
+  box-shadow: 0 0 22px rgba(0,201,255,.4);
+  position: relative;
+}
+.brand-mark::after {
+  content: ""; position: absolute; inset: 8px; border-radius: 6px; background: var(--bg);
+}
+.brand-name { font-size: 17px; font-weight: 800; letter-spacing: .01em; }
+.brand-name em { font-style: normal; background: var(--grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.brand-sub { font-family: var(--mono); font-size: 10px; color: var(--text-faint); letter-spacing: .16em; text-transform: uppercase; margin-top: 1px; }
+.mode-pill {
+  margin-left: auto; display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--mono); font-size: 11px; padding: 7px 14px; border-radius: 999px;
+  border: 1px solid var(--line-strong); color: var(--text-dim);
+  background: rgba(255,255,255,.03);
+}
+.mode-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+.mode-pill.local .dot { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+.github-link {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 12.5px; font-weight: 600; color: var(--text-dim);
+  text-decoration: none; padding: 8px 14px; border-radius: 999px;
+  border: 1px solid var(--line-strong); transition: all .2s;
+}
+.github-link:hover { color: var(--text); border-color: rgba(0,201,255,.5); transform: translateY(-1px); }
+
+/* ================= Hero ================= */
+.hero {
+  position: relative; z-index: 1;
+  max-width: 1200px; margin: 0 auto;
+  padding: 64px 26px 34px;
+  text-align: center;
+}
+.hero .eyebrow {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .3em;
+  color: var(--accent); text-transform: uppercase; margin-bottom: 16px;
+  display: inline-flex; align-items: center; gap: 10px;
+}
+.hero .eyebrow::before, .hero .eyebrow::after { content: ""; width: 34px; height: 1px; background: linear-gradient(90deg, transparent, rgba(0,201,255,.6)); }
+.hero .eyebrow::after { background: linear-gradient(90deg, rgba(0,201,255,.6), transparent); }
+.hero h1 {
+  font-size: clamp(34px, 5.6vw, 58px);
+  font-weight: 900; letter-spacing: -.02em; line-height: 1.12;
+}
+.hero h1 .grad {
+  background: linear-gradient(110deg, var(--c1) 5%, var(--c2) 45%, var(--c3) 80%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 4px 30px rgba(0,201,255,.25));
+}
+.hero .sub {
+  max-width: 620px; margin: 18px auto 0;
+  color: var(--text-dim); font-size: 15.5px;
+}
+.hero .stats {
+  display: flex; justify-content: center; gap: 12px; margin-top: 28px; flex-wrap: wrap;
+}
+.stat {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 18px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--card);
+  font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+}
+.stat b { color: var(--text); font-size: 14px; }
+.stat b.ok { color: var(--ok); }
+.stat b.warn { color: var(--warn); }
+
+/* ================= 搜索 ================= */
+.search-wrap { max-width: 1200px; margin: 8px auto 0; padding: 0 26px; position: relative; z-index: 1; }
+.search-box {
+  position: relative; max-width: 460px; margin: 0 auto;
+}
+.search-box svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--text-faint); pointer-events: none; }
+.search-box input {
+  width: 100%; padding: 12px 16px 12px 44px;
+  background: var(--card); border: 1px solid var(--line-strong);
+  border-radius: 999px; color: var(--text); font-size: 13.5px;
+  font-family: var(--sans); outline: none;
+  transition: border-color .25s, box-shadow .25s;
+}
+.search-box input::placeholder { color: var(--text-faint); }
+.search-box input:focus { border-color: rgba(0,201,255,.6); box-shadow: 0 0 0 4px rgba(0,201,255,.12), 0 0 24px rgba(0,201,255,.12); }
+
+/* ================= 板块 ================= */
+.section { max-width: 1200px; margin: 0 auto; padding: 38px 26px 8px; position: relative; z-index: 1; }
+.section-head { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+.section-head .icon {
+  width: 40px; height: 40px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center; font-size: 19px;
+  flex-shrink: 0;
+}
+.section-head .icon.ready { background: linear-gradient(135deg, rgba(146,254,157,.18), rgba(0,201,255,.14)); border: 1px solid rgba(146,254,157,.3); }
+.section-head .icon.todo { background: linear-gradient(135deg, rgba(255,183,3,.14), rgba(0,201,255,.1)); border: 1px solid rgba(255,183,3,.28); }
+.section-head h2 { font-size: 19px; font-weight: 800; }
+.section-head p { font-size: 12.5px; color: var(--text-faint); margin-top: 2px; }
+.section-head .hint-line { margin-left: auto; font-family: var(--mono); font-size: 10.5px; color: var(--text-faint); letter-spacing: .08em; }
+
+/* ================= 可用项目（大卡片） ================= */
+.ready-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 18px; }
+.tool-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 22px;
+  position: relative;
+  overflow: hidden;
+  transition: transform .3s var(--ease), border-color .3s, box-shadow .3s, background .3s;
+  animation: rise .5s var(--ease) both;
+}
+.tool-card::before {
+  content: ""; position: absolute; inset: 0 0 auto 0; height: 2px;
+  background: linear-gradient(90deg, var(--c1), var(--c2));
+  opacity: 0; transition: opacity .3s;
+}
+.tool-card:hover { transform: translateY(-4px); border-color: rgba(0,201,255,.35); background: var(--card-hover); box-shadow: 0 0 0 1px rgba(0,201,255,.08), 0 14px 40px rgba(0,0,0,.4), 0 0 40px rgba(0,201,255,.07); }
+.tool-card:hover::before { opacity: 1; }
+.tool-card.ready::before { background: linear-gradient(90deg, var(--ok), var(--c1)); }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+.tool-top { display: flex; align-items: flex-start; gap: 14px; }
+.tool-icon {
+  width: 46px; height: 46px; border-radius: 13px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 22px;
+  background: linear-gradient(135deg, rgba(0,201,255,.16), rgba(146,254,157,.1));
+  border: 1px solid rgba(0,201,255,.28);
+}
+.tool-title { flex: 1; min-width: 0; }
+.tool-title h3 { font-size: 15.5px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.status-tag {
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase;
+  padding: 2.5px 8px; border-radius: 999px; font-weight: 600;
+  flex-shrink: 0;
+}
+.status-tag.ready { color: #05241A; background: var(--ok); }
+.status-tag.todo { color: #332200; background: var(--warn); }
+.tool-title .tags { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.tag {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .06em;
+  color: var(--text-dim); padding: 2px 9px; border-radius: 6px;
+  border: 1px solid var(--line); background: rgba(255,255,255,.03);
+}
+.tool-desc { margin-top: 12px; font-size: 13px; color: var(--text-dim); }
+.tool-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 16px; border-radius: 10px;
+  font-size: 13px; font-weight: 700; text-decoration: none;
+  transition: transform .18s var(--ease), box-shadow .25s, filter .2s, border-color .2s;
+}
+.btn:active { transform: scale(.97); }
+.btn-primary { background: var(--c1); color: #04202D; box-shadow: 0 0 0 1px rgba(0,201,255,.4), 0 4px 20px rgba(0,201,255,.22); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 0 0 1px rgba(0,201,255,.65), 0 8px 30px rgba(0,201,255,.32); filter: brightness(1.05); }
+.btn-ghost {
+  border: 1px solid var(--line-strong); color: var(--text-dim);
+  background: rgba(255,255,255,.03);
+}
+.btn-ghost:hover { color: var(--text); border-color: rgba(0,201,255,.5); transform: translateY(-1px); }
+.btn:disabled { opacity: .45; cursor: not-allowed; transform: none !important; }
+
+/* ================= 待办项目（紧凑网格） ================= */
+.todo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+.todo-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  padding: 17px 18px;
+  transition: transform .3s var(--ease), border-color .3s, box-shadow .3s, background .3s;
+  animation: rise .5s var(--ease) both;
+}
+.todo-card:hover { transform: translateY(-3px); border-color: rgba(255,183,3,.3); background: var(--card-hover); box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+.todo-row1 { display: flex; align-items: center; gap: 12px; }
+.todo-icon {
+  width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+  background: linear-gradient(135deg, rgba(255,183,3,.12), rgba(0,201,255,.08));
+  border: 1px solid rgba(255,183,3,.22);
+}
+.todo-name { flex: 1; min-width: 0; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.todo-remote { font-family: var(--mono); font-size: 9.5px; color: #04202D; background: var(--c1); padding: 2px 7px; border-radius: 999px; font-weight: 600; letter-spacing: .06em; }
+.todo-desc { margin-top: 9px; font-size: 12.5px; color: var(--text-dim); }
+.todo-path-wrap {
+  margin-top: 11px;
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(0,0,0,.28);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 7px 9px 7px 12px;
+}
+.todo-path {
+  flex: 1; min-width: 0;
+  font-family: var(--mono); font-size: 10.5px; color: var(--text-faint);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.todo-path.local { color: rgba(146,254,157,.8); }
+.todo-path.remote { color: rgba(0,201,255,.85); }
+.todo-copy {
+  font-family: var(--mono); font-size: 10.5px;
+  padding: 5px 10px; border-radius: 7px;
+  border: 1px solid var(--line-strong); color: var(--text-dim);
+  transition: all .2s; flex-shrink: 0;
+}
+.todo-copy:hover { color: #04202D; background: var(--c1); border-color: var(--c1); }
+.todo-open {
+  font-family: var(--mono); font-size: 10.5px;
+  padding: 5px 10px; border-radius: 7px;
+  border: 1px solid var(--line-strong); color: var(--text-dim);
+  transition: all .2s; flex-shrink: 0; text-decoration: none;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.todo-open:hover { color: var(--text); border-color: rgba(146,254,157,.5); }
+.todo-open:disabled { opacity: .35; cursor: not-allowed; }
+
+/* ================= 提示条 ================= */
+.notice {
+  max-width: 1200px; margin: 30px auto 0; padding: 0 26px; position: relative; z-index: 1;
+}
+.notice-inner {
+  display: flex; align-items: flex-start; gap: 13px;
+  background: linear-gradient(120deg, rgba(0,201,255,.08), rgba(146,254,157,.05));
+  border: 1px solid rgba(0,201,255,.22);
+  border-radius: 14px; padding: 15px 18px;
+  font-size: 12.5px; color: var(--text-dim);
+}
+.notice-inner .n-icon { font-size: 17px; flex-shrink: 0; margin-top: 1px; }
+.notice-inner code {
+  font-family: var(--mono); font-size: 11px; color: var(--c1);
+  background: rgba(0,0,0,.3); padding: 1.5px 7px; border-radius: 5px;
+}
+.notice-inner b { color: var(--text); font-weight: 600; }
+
+/* ================= 页脚 ================= */
+.site-footer {
+  max-width: 1200px; margin: 0 auto; padding: 26px 26px 40px; position: relative; z-index: 1;
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+  border-top: 1px solid var(--line); margin-top: 44px; padding-top: 22px;
+  color: var(--text-faint); font-size: 12px;
+}
+.site-footer .mono { font-family: var(--mono); font-size: 11px; }
+.site-footer a { color: var(--text-dim); text-decoration: none; }
+.site-footer a:hover { color: var(--accent); }
+
+/* ================= Toast ================= */
+.toast-wrap {
+  position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%);
+  z-index: 80; pointer-events: none;
+}
+.toast {
+  background: rgba(6,43,58,.94);
+  border: 1px solid rgba(0,201,255,.4);
+  color: var(--text); font-family: var(--mono); font-size: 12px;
+  padding: 11px 18px; border-radius: 10px;
+  box-shadow: 0 0 26px rgba(0,201,255,.16), 0 10px 26px rgba(0,0,0,.5);
+  display: flex; align-items: center; gap: 9px;
+  animation: toastIn .35s var(--ease);
+  backdrop-filter: blur(8px);
+  max-width: 86vw;
+}
+.toast .t-ico { color: var(--ok); font-size: 14px; }
+.toast.out { animation: toastOut .3s var(--ease) forwards; }
+@keyframes toastIn { from { opacity: 0; transform: translateY(12px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes toastOut { to { opacity: 0; transform: translateY(8px) scale(.96); } }
+
+/* 滚动条 */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(245,253,255,.14); border-radius: 6px; border: 2px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,201,255,.35); background-clip: content-box; border: 2px solid transparent; }
+
+@media (max-width: 640px) {
+  .github-link span.txt { display: none; }
+  .mode-pill { display: none; }
+  .ready-grid, .todo-grid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true"></div>
+      <div>
+        <div class="brand-name">Bering <em>DIY Tools</em></div>
+        <div class="brand-sub">Vibe Coding Toolbox</div>
+      </div>
+    </div>
+    <span class="mode-pill" id="modePill"><span class="dot"></span><span id="modeText">检测模式…</span></span>
+    <a class="github-link" href="https://github.com/BeringZ" target="_blank" rel="noopener">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.87-1.54-3.87-1.54-.53-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.23-1.28-5.23-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.25 5.67.41.35.78 1.05.78 2.12v3.14c0 .31.2.66.8.55A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5z"/></svg>
+      <span class="txt">github.com/BeringZ</span>
+    </a>
+  </div>
+</header>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="eyebrow">DIY VIBE CODING PORTFOLIO</div>
+  <h1>我的 <span class="grad">DIY 工具集</span><br>一座自建的微型码头</h1>
+  <p class="sub">用 vibe coding 折腾出来的小工具、小游戏与小实验。可用项目直接打开，待办项目已索引到本地目录，随手可续。</p>
+  <div class="stats">
+    <div class="stat">可用 <b class="ok" id="statReady">0</b></div>
+    <div class="stat">待办 <b class="warn" id="statTodo">0</b></div>
+    <div class="stat">GitHub <b>7</b> repos</div>
+  </div>
+</section>
+
+<!-- 搜索 -->
+<div class="search-wrap">
+  <div class="search-box">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="searchInput" type="text" placeholder="搜索工具…（名称 / 描述 / 路径）" autocomplete="off">
+  </div>
+</div>
+
+<!-- 可用项目 -->
+<section class="section">
+  <div class="section-head">
+    <div class="icon ready">✅</div>
+    <div>
+      <h2>可用项目</h2>
+      <p>开箱即用，点击直接打开</p>
+    </div>
+    <span class="hint-line">READY → USE</span>
+  </div>
+  <div class="ready-grid" id="readyGrid"></div>
+</section>
+
+<!-- 待办项目 -->
+<section class="section">
+  <div class="section-head">
+    <div class="icon todo">🚧</div>
+    <div>
+      <h2>待办项目</h2>
+      <p>索引到本地目录，随时继续开发</p>
+    </div>
+    <span class="hint-line">WIP → BACKLOG</span>
+  </div>
+  <div class="todo-grid" id="todoGrid"></div>
+</section>
+
+<!-- 使用提示 -->
+<div class="notice">
+  <div class="notice-inner">
+    <span class="n-icon">💡</span>
+    <div>
+      <b>路径使用说明</b>：本地双击本页面时，绿色路径可直接点击打开；部署到网页后，本地路径在浏览器中无法直跳，请点「复制」→ 在 Finder 按 <code>Cmd+Shift+G</code> 粘贴直达。远程项目（GitHub）在任何环境下都可直接打开。
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <span>Bering DIY Tools · 海洋渐变 <span class="mono">/ #00C9FF → #92FE9D → #003049</span></span>
+  <span class="mono">Built with vibe coding · <a href="https://github.com/BeringZ" target="_blank" rel="noopener">GitHub</a></span>
+</footer>
+
+<div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
+
+<script>
+/* ============================================================
+   项目数据 —— 新增项目在这里加一行即可
+   字段说明：
+   - type: 'ready' 可用 | 'todo' 待办
+   - href: 可跳转链接（http/https/file 均可）
+   - path: 本地路径（仅 todo 显示；remote 项目留空）
+   - remote: true 表示远程仓库（无本地路径）
+   ============================================================ */
+const PROJECTS = [
+  /* ---------- 可用项目 ---------- */
+  {
+    type: 'ready', icon: '🎨', name: 'ColorHarbor 配色收藏库',
+    tags: ['设计工具', '纯前端', '单文件'],
+    desc: '暗色画廊风格的配色收藏库：40 组手编配色（极简/渐变/复古/霓虹/自然），Masonry 画廊浏览、分类过滤、收藏抽屉、实时 UI 预览与一键复制。',
+    href: 'file:///Users/bering/WorkBuddy/2026-08-01-15-02-02/ColorHarbor/index.html',
+    path: '/Users/bering/WorkBuddy/2026-08-01-15-02-02/ColorHarbor/index.html',
+    remote: false
+  },
+  {
+    type: 'ready', icon: '📚', name: 'Algora 算法可视化',
+    tags: ['学习工具', '数据结构', '动画'],
+    desc: '零依赖的中文数据结构与算法可视化学习站：58 个模块覆盖线性表、树、图、查找、排序，动画帧与真实代码联动，支持 C/C++/Java/Python 三语言。',
+    href: 'https://github.com/BeringZ/algora-visualizer',
+    path: '/Users/bering/Documents/PM/algora-visualizer/index.html',
+    remote: false
+  },
+
+  /* ---------- 待办项目 ---------- */
+  {
+    type: 'todo', icon: '🎮', name: 'Toys 游戏实验室',
+    tags: ['Godot', '游戏'],
+    desc: '6 款 Godot 游戏原型：BG3_like 回合制战斗、Pokemon_like 抓宠、Rogue 地牢、Fight_Balance 数值平衡、WORLD 沙盒等。',
+    path: '/Users/bering/Documents/PM/Toys', remote: false
+  },
+  {
+    type: 'todo', icon: '📈', name: '量化交易策略',
+    tags: ['Python', '回测', '模拟盘'],
+    desc: 'MACD / MA / RSI 三种策略的历史回测、参数优化热力图与模拟盘（paper trading），含完整日志与实盘指南。',
+    path: '/Users/bering/Documents/PM/量化交易', remote: false
+  },
+  {
+    type: 'todo', icon: '📊', name: '98 数据分析',
+    tags: ['数据分析', 'CC98'],
+    desc: 'CC98 论坛数据的整理与分析工作流，沉淀为可复用的实证分析流程。',
+    path: '/Users/bering/Documents/PM/98数据分析', remote: false
+  },
+  {
+    type: 'todo', icon: '🐸', name: 'meme 表情包爬虫',
+    tags: ['Python', '爬虫'],
+    desc: 'Twitter 等平台的表情包批量抓取工具：配置化抓取、去重、日志与数据落盘（meme_claw 同源）。',
+    path: '/Users/bering/Documents/PM/meme', remote: false
+  },
+  {
+    type: 'todo', icon: '📓', name: 'Notebooklm 工作流',
+    tags: ['笔记', '文献'],
+    desc: '基于 NotebookLM 的笔记与文献整理工作流。',
+    path: '/Users/bering/Documents/Notebooklm', remote: false
+  },
+  {
+    type: 'todo', icon: '🤖', name: 'AI Inline Fork',
+    tags: ['浏览器插件', 'TypeScript'],
+    desc: '基于网页端副会话的 AI 追问浏览器插件——在不打断阅读的前提下随时追问。',
+    path: '/Users/bering/Documents/PM/ai-inline-fork', remote: true,
+    remoteUrl: 'https://github.com/BeringZ/ai-inline-fork'
+  },
+  {
+    type: 'todo', icon: '🛡️', name: 'CC98 Filter',
+    tags: ['浏览器插件', 'JavaScript'],
+    desc: '「我的98我做主」——不想看的内容直接过滤掉，给 CC98 论坛装个过滤器。',
+    path: '/Users/bering/Documents/PM/CC98_Filter', remote: true,
+    remoteUrl: 'https://github.com/BeringZ/CC98_Filter'
+  },
+  {
+    type: 'todo', icon: '📖', name: 'Claude Guide',
+    tags: ['指南', '文档'],
+    desc: 'Claude 使用指南，整理成网页形式的学习资料。',
+    path: '/Users/bering/Documents/PM/claude-guide', remote: true,
+    remoteUrl: 'https://github.com/BeringZ/claude-guide'
+  },
+  {
+    type: 'todo', icon: '🩺', name: 'MSD_tutor 预诊助手',
+    tags: ['Python', '医学'],
+    desc: '课程作业项目：基于症状的预诊助手，未来计划继续优化。',
+    path: '/Users/bering/Documents/PM/MSD_tutor', remote: true,
+    remoteUrl: 'https://github.com/BeringZ/MSD_tutor'
+  },
+  {
+    type: 'todo', icon: '🕷️', name: 'meme_claw',
+    tags: ['Python', '爬虫'],
+    desc: '表情包爬虫的独立仓库版本（与本地 meme 同源，已同步至 GitHub）。',
+    path: '/Users/bering/Documents/PM/meme_claw', remote: true,
+    remoteUrl: 'https://github.com/BeringZ/meme_claw'
+  }
+];
+
+/* ================= 工具 ================= */
+const $ = s => document.querySelector(s);
+const isLocal = location.protocol === 'file:';
+let query = '';
+
+function toast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = `<span class="t-ico">✓</span><span>${msg}</span>`;
+  $('#toastWrap').appendChild(t);
+  setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 320); }, 2000);
+}
+
+async function copyText(text) {
+  let ok = false;
+  try { await navigator.clipboard.writeText(text); ok = true; }
+  catch {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); ok = true; } catch {}
+    document.body.removeChild(ta);
+  }
+  ok ? toast(`已复制路径`) : toast('复制失败，请手动复制');
+}
+
+/* ================= 渲染 ================= */
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function matches(p, q) {
+  if (!q) return true;
+  const hay = (p.name + ' ' + (p.desc||'') + ' ' + (p.path||'') + ' ' + (p.tags||[]).join(' ')).toLowerCase();
+  return hay.includes(q.toLowerCase());
+}
+
+function render() {
+  const ready = PROJECTS.filter(p => p.type === 'ready' && matches(p, query));
+  const todos = PROJECTS.filter(p => p.type === 'todo' && matches(p, query));
+
+  $('#statReady').textContent = ready.length;
+  $('#statTodo').textContent = todos.length;
+
+  $('#readyGrid').innerHTML = ready.map((p, i) => `
+    <article class="tool-card ready" style="animation-delay:${i*70}ms">
+      <div class="tool-top">
+        <div class="tool-icon">${p.icon}</div>
+        <div class="tool-title">
+          <h3>${esc(p.name)} <span class="status-tag ready">可用</span></h3>
+          <div class="tags">${p.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+        </div>
+      </div>
+      <p class="tool-desc">${esc(p.desc)}</p>
+      <div class="tool-actions">
+        <a class="btn btn-primary" href="${p.href}" target="_blank" rel="noopener">打开 ↗</a>
+        ${p.path ? `<button class="btn btn-ghost" data-copy="${esc(p.path)}">复制本地路径</button>` : ''}
+      </div>
+    </article>`).join('');
+
+  $('#todoGrid').innerHTML = todos.map((p, i) => {
+    const canOpen = isLocal && !p.remote;
+    const pathLabel = p.remote ? (p.remoteUrl || p.path) : p.path;
+    return `
+    <article class="todo-card" style="animation-delay:${i*50}ms">
+      <div class="todo-row1">
+        <div class="todo-icon">${p.icon}</div>
+        <div class="todo-name">${esc(p.name)}${p.remote ? '<span class="todo-remote">远程</span>' : ''}</div>
+      </div>
+      <p class="todo-desc">${esc(p.desc)}</p>
+      <div class="todo-path-wrap">
+        <span class="todo-path ${p.remote ? 'remote' : 'local'}" title="${esc(pathLabel)}">${esc(pathLabel)}</span>
+        <button class="todo-copy" data-copy="${esc(pathLabel)}">复制</button>
+        ${p.remote
+          ? `<a class="todo-open" href="${p.remoteUrl}" target="_blank" rel="noopener">↗</a>`
+          : `<button class="todo-open" data-open="${esc(pathLabel)}" ${canOpen ? '' : 'disabled title="网页模式下不可直跳，请复制路径"'}">↗</button>`}
+      </div>
+    </article>`;
+  }).join('');
+
+  // 绑定复制
+  document.querySelectorAll('[data-copy]').forEach(el => {
+    el.onclick = e => { e.stopPropagation(); copyText(el.dataset.copy); };
+  });
+  // 绑定本地打开
+  document.querySelectorAll('[data-open]').forEach(el => {
+    el.onclick = e => { e.stopPropagation(); window.open(el.dataset.open); };
+  });
+}
+
+/* ================= 模式提示 ================= */
+function setMode() {
+  const pill = $('#modePill'), txt = $('#modeText');
+  if (isLocal) {
+    pill.classList.add('local');
+    txt.textContent = '本地模式 · 路径可直跳';
+  } else {
+    pill.classList.remove('local');
+    txt.textContent = '网页模式 · 复制路径使用';
+  }
+}
+
+/* ================= 事件 ================= */
+$('#searchInput').addEventListener('input', e => { query = e.target.value.trim(); render(); });
+
+/* ================= 启动 ================= */
+setMode();
+render();
+</script>
+</body>
+</html>
