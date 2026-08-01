@@ -134,6 +134,7 @@ body::before {
   font-family: var(--sans);
 }
 .sidebar-item:hover { background: rgba(146,254,157,.4); color: var(--ink); transform: translateX(3px) rotate(-.5deg); }
+.sidebar-item.active { background: var(--c2); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--ink); }
 .sidebar-item .si-ico {
   width: 27px; height: 27px; border-radius: 7px; flex-shrink: 0;
   background: #fff; border: 1.8px solid var(--ink);
@@ -281,8 +282,23 @@ body::before {
 .search-box input::placeholder { color: var(--ink-faint); }
 .search-box input:focus { box-shadow: 3px 3px 0 rgba(0,48,73,.22), 0 0 0 4px rgba(0,201,255,.25); transform: rotate(0); }
 
-/* ================= 板块 ================= */
+/* ================= 板块（多页面 + 丝滑平移） ================= */
 .section { max-width: 1200px; margin: 0 auto; padding: 36px 26px 6px; position: relative; z-index: 1; }
+.page-viewport {
+  max-width: 1200px; margin: 0 auto;
+  overflow: hidden; position: relative; z-index: 1;
+}
+.pages {
+  display: flex;
+  transition: transform .62s cubic-bezier(.65,.05,.25,1);
+  will-change: transform;
+}
+.page { flex: 0 0 100%; padding: 32px 26px 8px; }
+.pages.go-todo { transform: translateX(-100%); }
+.page-empty {
+  text-align: center; padding: 48px 20px;
+  color: var(--ink-faint); font-family: var(--hand2); font-size: 18px;
+}
 .section-head { display: flex; align-items: flex-end; gap: 14px; margin-bottom: 22px; flex-wrap: wrap; }
 .section-head .sticker {
   width: 46px; height: 46px; border-radius: 12px;
@@ -583,31 +599,35 @@ body::before {
   </div>
 </div>
 
-<!-- 可用项目 -->
-<section class="section">
-  <div class="section-head">
-    <div class="sticker ready">✅</div>
-    <div>
-      <h2>可用项目</h2>
-      <div class="s-sub">开箱即用，点击直接打开</div>
-    </div>
-    <span class="hint-line">READY → USE</span>
+<!-- 分区页面（丝滑平移切换） -->
+<div class="page-viewport">
+  <div class="pages" id="pages">
+    <section class="page" id="pageReady" data-page="ready">
+      <div class="section-head">
+        <div class="sticker ready">✅</div>
+        <div>
+          <h2>可用项目</h2>
+          <div class="s-sub">开箱即用，点击直接打开</div>
+        </div>
+        <span class="hint-line">READY → USE</span>
+      </div>
+      <div class="ready-grid" id="readyGrid"></div>
+      <div class="page-empty" id="emptyReady" hidden>当前分区暂无匹配的项目</div>
+    </section>
+    <section class="page" id="pageTodo" data-page="todo">
+      <div class="section-head">
+        <div class="sticker todo">🚧</div>
+        <div>
+          <h2>待办项目</h2>
+          <div class="s-sub">索引到本地目录，随时继续开发</div>
+        </div>
+        <span class="hint-line">WIP → BACKLOG</span>
+      </div>
+      <div class="todo-grid" id="todoGrid"></div>
+      <div class="page-empty" id="emptyTodo" hidden>当前分区暂无匹配的项目</div>
+    </section>
   </div>
-  <div class="ready-grid" id="readyGrid"></div>
-</section>
-
-<!-- 待办项目 -->
-<section class="section">
-  <div class="section-head">
-    <div class="sticker todo">🚧</div>
-    <div>
-      <h2>待办项目</h2>
-      <div class="s-sub">索引到本地目录，随时继续开发</div>
-    </div>
-    <span class="hint-line">WIP → BACKLOG</span>
-  </div>
-  <div class="todo-grid" id="todoGrid"></div>
-</section>
+</div>
 
 <!-- 使用提示 -->
 <div class="notice">
@@ -752,19 +772,17 @@ function matches(p, q) {
 }
 
 function render() {
-  const indexed = PROJECTS.map((p, i) => ({ p, i }));
-  const ready = indexed.filter(x => x.p.type === 'ready' && matches(x.p, query));
-  const todos = indexed.filter(x => x.p.type === 'todo' && matches(x.p, query));
+  const ready = PROJECTS.filter(p => p.type === 'ready' && matches(p, query));
+  const todos = PROJECTS.filter(p => p.type === 'todo' && matches(p, query));
 
   $('#statReady').textContent = ready.length;
   $('#statTodo').textContent = todos.length;
 
-  $('#readyGrid').innerHTML = ready.map((x, i) => {
-    const p = x.p;
+  $('#readyGrid').innerHTML = ready.map((p, i) => {
     // 「使用」按钮：本地模式优先打开本地文件，网页模式打开线上部署版
     const useHref = (isLocal && p.useLocal) ? p.useLocal : (p.useWeb || p.repo);
     return `
-    <article class="tool-card ready" id="card-${x.i}" style="animation-delay:${i*70}ms">
+    <article class="tool-card ready" style="animation-delay:${i*70}ms">
       <div class="tool-top">
         <div class="tool-icon">${p.icon}</div>
         <div class="tool-title">
@@ -780,12 +798,11 @@ function render() {
     </article>`;
   }).join('');
 
-  $('#todoGrid').innerHTML = todos.map((x, i) => {
-    const p = x.p;
+  $('#todoGrid').innerHTML = todos.map((p, i) => {
     const canOpen = isLocal && !p.remote;
     const pathLabel = p.remote ? (p.remoteUrl || p.path) : p.path;
     return `
-    <article class="todo-card" id="card-${x.i}" style="animation-delay:${i*50}ms">
+    <article class="todo-card" style="animation-delay:${i*50}ms">
       <div class="todo-row1">
         <div class="todo-icon">${p.icon}</div>
         <div class="todo-name">${esc(p.name)}${p.remote ? '<span class="todo-remote">远程</span>' : ''}</div>
@@ -801,39 +818,51 @@ function render() {
     </article>`;
   }).join('');
 
+  $('#emptyReady').hidden = ready.length > 0;
+  $('#emptyTodo').hidden = todos.length > 0;
+
   document.querySelectorAll('[data-copy]').forEach(el => {
     el.onclick = e => { e.stopPropagation(); copyText(el.dataset.copy); };
   });
   document.querySelectorAll('[data-open]').forEach(el => {
     el.onclick = e => { e.stopPropagation(); window.open(el.dataset.open); };
   });
-
-  renderSidebar(ready, todos);
 }
 
-/* ================= 侧边栏目录 ================= */
-function renderSidebar(ready, todos) {
-  const body = $('#sidebarBody');
-  let html = `<button class="sidebar-item si-top" data-goto="top">
-    <span class="si-ico">⬆</span><span class="si-name">回到顶部</span></button>`;
-  if (ready.length) {
-    html += `<div class="sidebar-group-label">可用项目</div>` + ready.map(x => `
-      <button class="sidebar-item" data-goto="card-${x.i}">
-        <span class="si-ico">${x.p.icon}</span><span class="si-name">${esc(x.p.name)}</span></button>`).join('');
-  }
-  if (todos.length) {
-    html += `<div class="sidebar-group-label">待办项目</div>` + todos.map(x => `
-      <button class="sidebar-item" data-goto="card-${x.i}">
-        <span class="si-ico">${x.p.icon}</span><span class="si-name">${esc(x.p.name)}</span></button>`).join('');
-  }
-  body.innerHTML = html;
-  body.querySelectorAll('[data-goto]').forEach(el => {
-    el.onclick = () => {
-      const g = el.dataset.goto;
-      if (g === 'top') window.scrollTo({ top: 0, behavior: 'smooth' });
-      else document.getElementById(g)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    };
+/* ================= 分区页面切换（丝滑平移） ================= */
+let curPage = 'ready';
+function switchPage(key) {
+  if (key === curPage) return;
+  curPage = key;
+  $('#pages').classList.toggle('go-todo', key === 'todo');
+  updateSidebarActive();
+  if (location.hash !== '#' + key) history.pushState(null, '', '#' + key);
+}
+function updateSidebarActive() {
+  document.querySelectorAll('.sidebar-item[data-page]').forEach(el => {
+    el.classList.toggle('active', el.dataset.page === curPage);
   });
+}
+window.addEventListener('hashchange', () => {
+  const h = (location.hash || '#ready').replace('#', '');
+  if (h === 'ready' || h === 'todo') {
+    curPage = h;
+    $('#pages').classList.toggle('go-todo', h === 'todo');
+    updateSidebarActive();
+  }
+});
+
+/* ================= 侧边栏目录（仅分区） ================= */
+function renderSidebar() {
+  $('#sidebarBody').innerHTML = `
+    <button class="sidebar-item" data-page="ready">
+      <span class="si-ico">✅</span><span class="si-name">可用项目</span></button>
+    <button class="sidebar-item" data-page="todo">
+      <span class="si-ico">🚧</span><span class="si-name">待办项目</span></button>`;
+  $('#sidebarBody').querySelectorAll('[data-page]').forEach(el => {
+    el.onclick = () => switchPage(el.dataset.page);
+  });
+  updateSidebarActive();
 }
 
 /* ================= 模式提示 ================= */
@@ -867,6 +896,12 @@ document.addEventListener('keydown', e => {
 /* ================= 启动 ================= */
 setMode();
 render();
+renderSidebar();
+// 初始化时按 hash 定位分区（#ready / #todo）
+const initHash = (location.hash || '#ready').replace('#', '');
+curPage = (initHash === 'todo') ? 'todo' : 'ready';
+$('#pages').classList.toggle('go-todo', curPage === 'todo');
+updateSidebarActive();
 </script>
 </body>
 </html>
