@@ -10,22 +10,26 @@
 - **配色**：海洋渐变 `#00C9FF → #92FE9D → #00B4D8 → #0077B6 → #003049`
 - **字体**：标题 Caveat（手写体）/ 正文 Inter / 色值与路径 Geist Mono
 
-## 🔒 可见性
+## 🌐 可见性
 
-- 仓库 `BeringZ/diy-tools` 已设为 **私有（private）**，仅自己可见
-- GitHub Pages 公开站点随之下线（404），本地双击 `index.html` 完全可用（file:// 本地模式）
+- 仓库 `BeringZ/diy-tools` 为 **公开（public）**，站点可公开访问
+- 曾短暂设为私有（见日志 v3.1），后改回公开恢复线上访问（v3.2）
 
 ## 🚀 部署
 
-- 仓库：`BeringZ/diy-tools`（私有）
-- 站点：`https://beringz.github.io/diy-tools/`（私有化后仅公开访问失效；如需恢复线上站点需改回 public 或升级付费计划）
+- 仓库：`BeringZ/diy-tools`（公开）
+- 站点：`https://beringz.github.io/diy-tools/`
 - 本地使用：直接双击 `index.html`（本地模式下 file:// 路径可直接点击打开）
 
 ## 📝 修改日志 (Changelog)
 
-### 2026-08-01 · v3.1 — 仓库转为私有
-- `BeringZ/diy-tools` 设为 **private**（仅自己可见），公开 Pages 站点下线（HTTP 404）
-- 新增本 README 与修改日志
+### 2026-08-01 · v3.2 — 仓库改回公开
+- `BeringZ/diy-tools` 由私有改回 **public**，重新启用 GitHub Pages，线上站点恢复访问
+- README 同步更新
+
+### 2026-08-01 · v3.1 — 仓库短暂转为私有
+- 曾将仓库设为 **private**（仅自己可见），公开 Pages 站点随之下线（HTTP 404）
+- 私有化导致免费计划下 Pages 配置被移除；后经确认改回公开（v3.2）
 
 ### 2026-08-01 · v3 — 可用项目「使用」按钮直达工具本体
 - 可用项目按钮从「打开」（跳转 GitHub 仓库页）改为 **「使用」—— 直接运行工具本体**
