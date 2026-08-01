@@ -10,20 +10,29 @@
 - **配色**：海洋渐变 `#00C9FF → #92FE9D → #00B4D8 → #0077B6 → #003049`
 - **字体**：标题 Caveat（手写体）/ 正文 Inter / 色值与路径 Geist Mono
 
+## 🔒 可见性
+
+- 仓库 `BeringZ/diy-tools` 已设为 **私有（private）**，仅自己可见
+- GitHub Pages 公开站点随之下线（404），本地双击 `index.html` 完全可用（file:// 本地模式）
+
 ## 🚀 部署
 
-- 仓库：`BeringZ/diy-tools`（**私有**，仅自己可见）
-- 站点：`https://beringz.github.io/diy-tools/`
+- 仓库：`BeringZ/diy-tools`（私有）
+- 站点：`https://beringz.github.io/diy-tools/`（私有化后仅公开访问失效；如需恢复线上站点需改回 public 或升级付费计划）
 - 本地使用：直接双击 `index.html`（本地模式下 file:// 路径可直接点击打开）
 
 ## 📝 修改日志 (Changelog)
+
+### 2026-08-01 · v3.1 — 仓库转为私有
+- `BeringZ/diy-tools` 设为 **private**（仅自己可见），公开 Pages 站点下线（HTTP 404）
+- 新增本 README 与修改日志
 
 ### 2026-08-01 · v3 — 可用项目「使用」按钮直达工具本体
 - 可用项目按钮从「打开」（跳转 GitHub 仓库页）改为 **「使用」—— 直接运行工具本体**
 - Algora 算法可视化部署至其仓库 GitHub Pages：`https://beringz.github.io/algora-visualizer/`（网页模式直接使用）
 - 数据模型升级：`useWeb`（线上使用地址）/ `useLocal`（本地 file://）/ `repo`（仓库副按钮）
 - 「使用」按钮：本地模式优先打开本地文件，网页模式打开线上部署版
-- 推送期间 `github.com` 主站 CONNECT 502，改用 GitHub API 提交（`3605feb`），网络恢复后 fetch 对齐本地
+- 推送期间 `github.com` 主站 CONNECT 502，改用 GitHub API 提交，网络恢复后 fetch 对齐
 
 ### 2026-08-01 · v2 — 涂鸦彩绘风改造 + 更名
 - 品牌名更名 **bering room**
