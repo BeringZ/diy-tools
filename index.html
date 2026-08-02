@@ -86,15 +86,15 @@ body::before {
   display: flex; align-items: stretch;
 }
 .sidebar-hotzone {
-  width: 16px; flex-shrink: 0;
+  width: 3px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
 }
 .sidebar-hotzone::before {
-  content: ""; width: 4px; height: 64px; border-radius: 4px;
-  background: var(--ink); opacity: .14;
+  content: ""; width: 3px; height: 56px; border-radius: 3px;
+  background: var(--ink); opacity: .1;
   transition: opacity .25s, transform .25s;
 }
-.sidebar-dock:hover .sidebar-hotzone::before { opacity: .45; transform: scaleY(1.2); }
+.sidebar-dock.hover-open .sidebar-hotzone::before { opacity: .4; transform: scaleY(1.2); }
 .sidebar {
   width: 268px; max-width: 80vw;
   background: #FFFFFF;
@@ -105,7 +105,7 @@ body::before {
   display: flex; flex-direction: column;
   overflow: hidden;
 }
-.sidebar-dock:hover .sidebar, .sidebar-dock.open .sidebar { transform: translateX(0); }
+.sidebar-dock.hover-open .sidebar, .sidebar-dock.open .sidebar { transform: translateX(0); }
 .sidebar-head {
   padding: 17px 18px 11px;
   border-bottom: 2px dashed var(--ink-soft);
@@ -891,6 +891,18 @@ $('#searchInput').addEventListener('input', e => { query = e.target.value.trim()
 // 移动端目录按钮：点击展开/收起；点击页面其他区域或按 Esc 关闭
 $('#sidebarToggle').addEventListener('click', () => {
   $('#sidebarDock').classList.toggle('open');
+});
+
+// 桌面端：鼠标真正碰到屏幕左边缘（≤3px）才唤起侧边栏；移出侧边栏区域后收回
+document.addEventListener('mousemove', e => {
+  if (window.matchMedia('(pointer: coarse)').matches) return; // 触摸设备跳过
+  const dock = $('#sidebarDock');
+  const w = dock.querySelector('.sidebar').offsetWidth;
+  if (e.clientX <= 3) {
+    dock.classList.add('hover-open');
+  } else if (e.clientX > w + 24 && !dock.classList.contains('open')) {
+    dock.classList.remove('hover-open');
+  }
 });
 document.addEventListener('click', e => {
   if (!e.target.closest('#sidebarDock') && !e.target.closest('#sidebarToggle')) {
