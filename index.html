@@ -84,13 +84,16 @@ body::before {
 .sidebar-dock {
   position: fixed; top: 0; bottom: 0; left: 0; z-index: 45;
   display: flex; align-items: stretch;
+  /* 关键：dock 本身不拦截点击，否则关闭时（侧栏 translateX 离屏但仍占 flex 空间）
+     会盖住左侧内容，导致可用项目的「使用」按钮点不动 */
+  pointer-events: none;
 }
 .sidebar-hotzone {
-  width: 3px; flex-shrink: 0;
+  width: 5px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
 }
 .sidebar-hotzone::before {
-  content: ""; width: 3px; height: 56px; border-radius: 3px;
+  content: ""; width: 5px; height: 56px; border-radius: 3px;
   background: var(--ink); opacity: .1;
   transition: opacity .25s, transform .25s;
 }
@@ -104,6 +107,8 @@ body::before {
   transition: transform .38s var(--ease);
   display: flex; flex-direction: column;
   overflow: hidden;
+  /* 侧栏自身需要接收点击（目录项、滚动）；dock 已设 none，这里单独打开 */
+  pointer-events: auto;
 }
 .sidebar-dock.hover-open .sidebar, .sidebar-dock.open .sidebar { transform: translateX(0); }
 .sidebar-head {
@@ -893,12 +898,12 @@ $('#sidebarToggle').addEventListener('click', () => {
   $('#sidebarDock').classList.toggle('open');
 });
 
-// 桌面端：鼠标真正碰到屏幕左边缘（≤3px）才唤起侧边栏；移出侧边栏区域后收回
+// 桌面端：鼠标真正碰到屏幕左边缘（≤5px）才唤起侧边栏；移出侧边栏区域后收回
 document.addEventListener('mousemove', e => {
   if (window.matchMedia('(pointer: coarse)').matches) return; // 触摸设备跳过
   const dock = $('#sidebarDock');
   const w = dock.querySelector('.sidebar').offsetWidth;
-  if (e.clientX <= 3) {
+  if (e.clientX <= 5) {
     dock.classList.add('hover-open');
   } else if (e.clientX > w + 24 && !dock.classList.contains('open')) {
     dock.classList.remove('hover-open');
