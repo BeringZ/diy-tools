@@ -379,6 +379,12 @@ body::before {
 }
 .tool-desc { margin-top: 12px; font-size: 13px; color: var(--ink-soft); }
 .tool-actions { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+.tool-note {
+  margin-top: 14px; padding: 8px 12px;
+  font-size: 12px; line-height: 1.6; color: var(--ink-soft);
+  background: rgba(255,183,3,.1);
+  border: 1.8px dashed var(--warn); border-radius: 9px;
+}
 
 .btn {
   display: inline-flex; align-items: center; gap: 7px;
@@ -683,9 +689,14 @@ const PROJECTS = [
   {
     type: 'ready', icon: '🎓', name: 'MAIC 课程地图',
     tags: ['学习工具', 'AI 课堂', '408 考研'],
-    desc: 'OpenMAIC 互动课堂索引（312 课）：数据结构与算法、计算机网络、操作系统、计算机组成，Level 1-5 难度地图。点击课程在本机 localhost:3000 打开 AI 讲课课堂（需 OpenMAIC 服务在线）。',
-    useWeb: 'https://beringz.github.io/diy-tools/level-map.html',
-    useLocal: 'http://localhost:3000/level-map.html'
+    desc: 'OpenMAIC 互动课堂索引（312 课）：数据结构与算法、计算机网络、操作系统、计算机组成，Level 1-5 难度地图。点「使用」经本地网关进入：服务未启动会自动拉起（首次约 30-90 秒），就绪后直达课程地图。',
+    useWeb: 'http://127.0.0.1:8910/',
+    useLocal: 'http://127.0.0.1:8910/',
+    actions: [
+      { label: '课程地图', href: 'http://127.0.0.1:8910/', primary: true },
+      { label: '服务状态', href: 'http://127.0.0.1:8910/health' }
+    ],
+    note: '需先双击仓库里的 start-maic.command 启动网关（一次性）'
   },
 
   /* ---------- 待办项目 ---------- */
@@ -801,6 +812,11 @@ function render() {
   $('#readyGrid').innerHTML = ready.map((p, i) => {
     // 「使用」按钮：本地模式优先打开本地文件，网页模式打开线上部署版
     const useHref = (isLocal && p.useLocal) ? p.useLocal : (p.useWeb || p.repo);
+    // 自定义多按钮（actions 优先；否则用默认的「使用」+ 可选 GitHub）
+    const actionBtns = p.actions
+      ? p.actions.map(a => `<a class="btn ${a.primary ? 'btn-primary' : 'btn-ghost'}" href="${a.href}" target="_blank" rel="noopener">${esc(a.label)}</a>`).join('')
+      : `<a class="btn btn-primary" href="${useHref}" target="_blank" rel="noopener">使用 ↗</a>` +
+        (p.repo ? `<a class="btn btn-ghost" href="${p.repo}" target="_blank" rel="noopener">GitHub 仓库</a>` : '');
     return `
     <article class="tool-card ready" style="animation-delay:${i*70}ms">
       <div class="tool-top">
@@ -812,9 +828,9 @@ function render() {
       </div>
       <p class="tool-desc">${esc(p.desc)}</p>
       <div class="tool-actions">
-        <a class="btn btn-primary" href="${useHref}" target="_blank" rel="noopener">使用 ↗</a>
-        ${p.repo ? `<a class="btn btn-ghost" href="${p.repo}" target="_blank" rel="noopener">GitHub 仓库</a>` : ''}
+        ${actionBtns}
       </div>
+      ${p.note ? `<div class="tool-note">💡 ${esc(p.note)}</div>` : ''}
     </article>`;
   }).join('');
 
