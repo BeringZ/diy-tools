@@ -22,7 +22,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 MAIC_DIR = "/Users/bering/WorkBuddy/MAIC/OpenMAIC"
 MAIC_PORT = 3000
@@ -55,9 +55,18 @@ def log(msg: str) -> None:
         pass
 
 
+def _local_opener() -> "urllib.request.OpenerDirector":
+    """构造一个禁用代理的 opener——探测 127.0.0.1 必须直连。
+
+    urllib 默认读 http_proxy/HTTP_PROXY 环境变量，全局代理开启时会把本地请求
+    也转发出去，表现为 "upstream connect failed"，进而误判服务没起。
+    """
+    return urllib.request.build_opener(urllib.request.ProxyHandler({}))
+
+
 def maic_healthy(timeout: float = 2.0) -> bool:
     try:
-        with urllib.request.urlopen(MAIC_HEALTH, timeout=timeout) as r:
+        with _local_opener().open(MAIC_HEALTH, timeout=timeout) as r:
             return r.status == 200
     except (urllib.error.URLError, OSError, ValueError):
         return False
@@ -160,6 +169,12 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:  # noqa: N802
         path = self.path.split("?")[0]
 
+        # /ping：只表示网关自身存活，不查 MAIC，必须瞬时返回。
+        # 启动脚本用它做"是否已在跑"判断——不能依赖 /health（会等 MAIC 探测）。
+        if path == "/ping":
+            self._json(200, {"gateway": "up", "port": self.server.server_address[1]})
+            return
+
         if path in ("/", "/index.html"):
             ok = ensure_maic()
             if ok:
@@ -173,13 +188,14 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/health":
             healthy = maic_healthy()
             self._json(200 if healthy else 503, {
+                "gateway": "up",
                 "maic": "up" if healthy else "down",
                 "url": MAIC_INDEX,
                 "log": LOG,
             })
             return
 
-        self._json(404, {"error": "not found", "paths": ["/", "/health"]})
+        self._json(404, {"error": "not found", "paths": ["/", "/ping", "/health"]})
 
     def log_message(self, fmt: str, *args) -> None:
         log("http " + (fmt % args))
@@ -204,21 +220,68 @@ border-top-color:#6ea8fe;border-radius:50%;animation:sp .8s linear infinite;vert
 </div></body></html>"""
 
 
+class Server(ThreadingHTTPServer):
+    """多线程 + 端口可复用。
+
+    单线程 HTTPServer 会被一个慢请求（`/` 里最长 180s 的 ensure_maic 轮询）整体阻塞，
+    导致 /ping、/health 全部超时——启动脚本会误判"网关没跑"再去抢端口，形成死循环。
+    """
+
+    daemon_threads = True
+    allow_reuse_address = True
+
+
+def gateway_alive(port: int, timeout: float = 1.5) -> bool:
+    """探测某端口上是否已有可用网关（只打 /ping，不触发任何启动逻辑）。"""
+    try:
+        req = urllib.request.Request(f"http://127.0.0.1:{port}/ping")
+        with _local_opener().open(req, timeout=timeout) as r:
+            return r.status == 200
+    except (urllib.error.URLError, OSError, ValueError):
+        return False
+
+
+def port_busy(port: int) -> bool:
+    import socket
+
+    with socket.socket() as s:
+        s.settimeout(0.5)
+        return s.connect_ex(("127.0.0.1", port)) == 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="MAIC 课程地图启动网关")
     ap.add_argument("--port", type=int, default=8910)
     ap.add_argument("--check", action="store_true", help="只检查状态，不启动服务")
+    ap.add_argument("--force", action="store_true", help="端口被占也强行启动（会失败）")
     args = ap.parse_args()
 
     if args.check:
         healthy = maic_healthy()
         print("MAIC:", "up" if healthy else "down")
         print("PG:", "up" if pg_running() else "down")
+        print("网关:", "up" if gateway_alive(args.port) else "down")
         return 0 if healthy else 1
 
-    srv = HTTPServer(("127.0.0.1", args.port), Handler)
+    # 幂等：已有健康网关就直接退出 0，不抢端口
+    if not args.force and gateway_alive(args.port):
+        log(f"检测到网关已在 {args.port} 运行，直接复用（不重复启动）")
+        return 0
+
+    if not args.force and port_busy(args.port):
+        log(f"端口 {args.port} 被其它程序占用且不是本网关。")
+        log("处理办法：lsof -nP -iTCP:%d -sTCP:LISTEN  查看占用进程并结束它，"
+            "或用 --port 换端口。" % args.port)
+        return 1
+
+    try:
+        srv = Server(("127.0.0.1", args.port), Handler)
+    except OSError as e:
+        log(f"网关启动失败（端口 {args.port}）: {e}")
+        return 1
+
     log(f"网关已启动: http://127.0.0.1:{args.port}/  →  {MAIC_INDEX}")
-    log(f"健康检查: http://127.0.0.1:{args.port}/health")
+    log(f"存活探测: /ping    服务状态: /health    日志: {LOG}")
     try:
         srv.serve_forever()
     except KeyboardInterrupt:
